@@ -1,0 +1,4 @@
+CohClassifier
+=============
+
+Classifier that uses the Coh-Metrix-Esp's features to classify texts using machine learning algorithms
