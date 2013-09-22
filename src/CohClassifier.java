@@ -1,6 +1,7 @@
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -15,7 +16,16 @@ public class CohClassifier {
 	private Instances data = null ;
 	private Evaluation eval = null ;
 	
+	private static int NUM_ALGORITHMS = 39 ;
+	
+	private String[] names ;
+	private double[][] values ;
+	private int archived ;
+	
 	public CohClassifier(){
+		names = new String[ NUM_ALGORITHMS ] ;
+		values = new double[ NUM_ALGORITHMS ][ 3 ] ;
+		archived = 0 ;
 	}
 	
 	public void setDataFromSingleFile( String path ){
@@ -62,6 +72,57 @@ public class CohClassifier {
 			bw.close() ;
 		}catch( Exception e ){
 			System.out.println( "ERROR: No se pudo exportar los datos a la ruta: " + path ) ;
+		}
+	}
+
+	public void archiveModel(){
+		names[ archived ] = this.getName() ;
+		values[ archived ][ 0 ] = eval.weightedPrecision() ;
+		values[ archived ][ 1 ] = eval.weightedRecall() ;
+		values[ archived ][ 2 ] = eval.weightedFMeasure() ;
+		archived++ ;
+	}
+	
+	public void toExperimentSummary( String path ){
+		sortArchivedModels() ;
+		try{
+			File file = new File( path ) ;
+			if( !file.exists() ) file.createNewFile() ;
+			
+			FileWriter fw = new FileWriter( file.getAbsoluteFile() ) ;
+			PrintWriter pw = new PrintWriter( fw ) ;
+			
+			String properties[] = { "Precision" , "Recall" , "F-Measure" } ;
+			
+			pw.write( "SUMMARY\n" );
+			pw.printf( "%43s %7s %11s\n" , properties[ 0 ] , properties[ 1 ] , properties[ 2 ] ) ;
+			for(int i = 0 ; i < archived ; i++){
+				pw.printf( "%-32s %7.2f %9.2f %9.2f\n" ,
+						names[ i ] ,
+						values[ i ][ 0 ] , values[ i ][ 1 ] , values[ i ][ 2 ] ) ;
+			}
+			pw.close() ;
+		}catch( Exception e ){
+			System.out.println( "ERROR: No se pudo exportar los datos a la ruta: " + path ) ;
+			e.printStackTrace();
+		}
+	}
+	
+	private void sortArchivedModels(){
+		for(int i = 0 ; i < archived ; i++){
+			for(int j = i + 1 ; j < archived ; j++){
+				if( values[ i ][ 2 ] < values[ j ][ 2 ] ){ // Compare F-Measures
+					String aux = names[ i ] ;
+					names[ i ] = names[ j ] ;
+					names[ j ] = aux ;
+					
+					for(int k = 0 ; k < 3 ; k++){
+						double a = values[ i ][ k ] ;
+						values[ i ][ k ] = values[ j ][ k ] ;
+						values[ j ][ k ] = a ;
+					}
+				}
+			}
 		}
 	}
 	

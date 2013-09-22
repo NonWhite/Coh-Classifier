@@ -53,15 +53,16 @@ public class Main {
 		CL[ 37 ] = new weka.classifiers.trees.RandomTree() ;
 		CL[ 38 ] = new weka.classifiers.trees.REPTree() ;
 		
-		CohClassifier coh = null ;
+		CohClassifier coh = new CohClassifier() ;
 		for(int i = 0 ; i < 39 ; i++){
-			coh = new CohClassifier() ;
+//			coh = new CohClassifier() ;
 			coh.setClassifier( CL[ i ] ) ;
 			coh.setDataFromSingleFile( "/home/nonwhite/data.arff" ) ;
 			coh.build() ;
 			coh.classify() ;
 			coh.export( "/home/nonwhite/runs/" + (i+1) + " - " + coh.getName() + ".txt" ) ;
+			coh.archiveModel() ;
 		}
+		coh.toExperimentSummary( "/home/nonwhite/runs/summary.txt" ) ;
 	}
-
 }
